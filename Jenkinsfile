@@ -14,16 +14,17 @@ pipeline {
             }
         }
 
-        stage('Push to DockerHub') {
+         stage('Push to DockerHub') {
             steps {
-                withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-pass', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        docker push "$DOCKERHUB_USER/$IMAGE_NAME:$VERSION"
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push edensit139/eden-app:v1.0.0
                     '''
                 }
             }
         }
+
 
         stage('Deploy with Ansible') {
             steps {
