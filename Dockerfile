@@ -1,11 +1,11 @@
-FROM node:18
+FROM jenkins/jenkins:lts
 
-WORKDIR /app
+USER root
 
-COPY . .
+# התקנת Docker CLI
+RUN apt-get update && \
+    apt-get install -y docker.io docker-compose git ansible && \
+    usermod -aG docker jenkins
 
-RUN npm install
-
-EXPOSE 80
-
-CMD ["npm", "start"]
+# חזרה ל־Jenkins user
+USER jenkins
