@@ -7,12 +7,7 @@ pipeline {
         VERSION = 'v1.0.0'
     }
 
-    stages {
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/edensitko/myPortfolio.git'
-            }
-        }
+    
 
         stage('Build Docker Image') {
             steps {
