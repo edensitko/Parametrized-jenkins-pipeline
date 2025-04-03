@@ -7,8 +7,7 @@ pipeline {
         VERSION = 'v1.0.0'
     }
 
-    
-
+    stages {
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$VERSION .'
@@ -17,10 +16,10 @@ pipeline {
 
         stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKER_PASS')]) {
                     sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push $DOCKERHUB_USER/$IMAGE_NAME:$VERSION
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                        docker push "$DOCKERHUB_USER/$IMAGE_NAME:$VERSION"
                     '''
                 }
             }
@@ -30,6 +29,15 @@ pipeline {
             steps {
                 sh 'ansible-playbook deploy-playbook.yml -i inventory.ini'
             }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ הפרויקט נבנה והופץ בהצלחה!"
+        }
+        failure {
+            echo "❌ הבנייה נכשלה, בדוק את ה־Console Output."
         }
     }
 }
