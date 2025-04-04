@@ -38,7 +38,7 @@ pipeline {
             echo "✅ הפרויקט נבנה והופץ בהצלחה!"
         }
         failure {
-            echo "❌ הבנייה נכשלה, בדוק את ה־Console Output."
+            echo "❌ הבנייה נכשלה, בדוק את ה־Console ."
         }
     }
 }
