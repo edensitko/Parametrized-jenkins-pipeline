@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKERHUB_USER = 'edensit139'
         IMAGE_NAME = 'eden-app'
-        VERSION = 'v1.0.2'
+        VERSION = 'v1.0.3'
     }
 
     stages {
