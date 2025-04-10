@@ -1,19 +1,31 @@
-- name: Deploy Eden App
-  hosts: app_server
-  become: true
-
+- hosts: all
+  become: yes
+  vars:
+    service: "{{ service }}"
   tasks:
-    - name: Pull Docker image
-      docker_image:
-        name: edensit139/eden-app
-        tag: v1.0.0
-        source: pull
+    - name: Define port per service
+      set_fact:
+        host_port: >-
+          {% if service == 'service1' %}
+            8081
+          {% elif service == 'service2' %}
+            8082
+          {% else %}
+            9999
+          {% endif %}
+        container_port: >-
+          {% if service == 'service1' %}
+            80
+          {% elif service == 'service2' %}
+            3000
+          {% else %}
+            80
+          {% endif %}
 
-    - name: Run the container
+    - name: Run Docker container
       docker_container:
-        name: eden-app
-        image: edensit139/eden-app:v1.0.0
+        name: "{{ service }}"
+        image: "edensit139/{{ service }}:latest"
         state: started
-        restart_policy: always
         ports:
-          - "80:80"
+          - "{{ host_port }}:{{ container_port }}"

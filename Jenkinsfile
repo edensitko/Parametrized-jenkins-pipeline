@@ -1,44 +1,44 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'SERVICE_NAME', choices: ['service1-nginx', 'service2-node'], description: 'Select service to deploy')
+        string(name: 'VERSION', defaultValue: 'v1', description: 'Docker image version')
+    }
+
     environment {
-        DOCKERHUB_USER = 'edensit139'
-        IMAGE_NAME = 'eden-app'
-        VERSION = 'v1.0.4'
+        DOCKER_HUB_USER = 'edensit139'
     }
 
     stages {
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKERHUB_USER/$IMAGE_NAME:$VERSION .'
-            }
-        }
-
-         stage('Push to DockerHub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-pass', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push edensit139/eden-app:v1.0.0
-                    '''
+                dir("${params.SERVICE_NAME}") {
+                    script {
+                        docker.build("${DOCKER_HUB_USER}/${params.SERVICE_NAME}:${params.VERSION}")
+                    }
                 }
             }
         }
 
+        stage('Push to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    script {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                        sh "docker push ${DOCKER_HUB_USER}/${params.SERVICE_NAME}:${params.VERSION}"
+                    }
+                }
+            }
+        }
 
         stage('Deploy with Ansible') {
             steps {
-                sh 'ansible-playbook deploy-playbook.yml -i inventory.ini'
+                sh """
+                ansible-playbook -i inventory.ini deploy-playbook.yml \
+                --extra-vars "service_name=${params.SERVICE_NAME} image_tag=${params.VERSION}"
+                """
             }
-        }
-    }
-
-    post {
-        success {
-            echo "✅ הפרויקט נבנה והופץ בהצלחה!"
-        }
-        failure {
-            echo "❌ הבנייה נכשלה, בדוק את ה־Console ."
         }
     }
 }
