@@ -1,31 +1,17 @@
 - hosts: all
   become: yes
   vars:
-    service: "{{ service }}"
+    service: "{{ service_name }}"
   tasks:
-    - name: Define port per service
+    - name: Define ports based on service
       set_fact:
-        host_port: >-
-          {% if service == 'service1' %}
-            8081
-          {% elif service == 'service2' %}
-            8082
-          {% else %}
-            9999
-          {% endif %}
-        container_port: >-
-          {% if service == 'service1' %}
-            80
-          {% elif service == 'service2' %}
-            3000
-          {% else %}
-            80
-          {% endif %}
+        host_port: "{{ '80' if service == 'service-nginx' else '3000' if service == 'service-node' else '9999' }}"
+        container_port: "{{ '80' if service == 'service-nginx' else '3000' if service == 'service-node' else '80' }}"
 
     - name: Run Docker container
       docker_container:
         name: "{{ service }}"
-        image: "edensit139/{{ service }}:latest"
+        image: "<your-docker-hub-username>/{{ service }}:{{ image_tag }}"
         state: started
         ports:
           - "{{ host_port }}:{{ container_port }}"
